@@ -1,0 +1,10 @@
+{
+  "name": "olpie-esp32-modules",
+  "version": "0.1.0",
+  "description": "Skeleton repository for reusable ESP32 modules.",
+  "keywords": ["esp32", "skeleton"],
+  "license": "MIT",
+  "frameworks": ["arduino", "espidf"],
+  "platforms": ["espressif32"],
+  "build": { "includeDir": "include", "srcDir": "src" }
+}
