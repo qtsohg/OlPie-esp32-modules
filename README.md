@@ -8,7 +8,7 @@ implementations without restructuring a project.
 
 1. Add this repository as a submodule in your PlatformIO project:
    ```bash
-git submodule add https://github.com/yourname/olpie-esp32-modules lib/olpie-esp32-modules
+   git submodule add https://github.com/yourname/olpie-esp32-modules lib/olpie-esp32-modules
    ```
 2. Point PlatformIO to the `include` and `src` folders (for example with
    `lib_extra_dirs`).
