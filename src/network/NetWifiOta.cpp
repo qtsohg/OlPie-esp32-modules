@@ -1,4 +1,5 @@
 #include "NetWifiOta.h"
+#include "NetworkConfig.h"
 
 #include <espmods/core.hpp>
 
@@ -13,7 +14,7 @@ void NetWifiOta::setupWifi() {
   
   LogSerial.println("Setting up WiFi...");
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  WiFi.begin(config_.wifiSsid, config_.wifiPassword);
   
   // Wait for connection (with timeout)
   uint32_t startTime = millis();
@@ -43,7 +44,7 @@ void NetWifiOta::setupOta() {
   if (otaStarted) return;
   
   LogSerial.println("Setting up OTA...");
-  ArduinoOTA.setHostname(DEVICE_HOSTNAME);
+  ArduinoOTA.setHostname(config_.deviceHostname);
   
   ArduinoOTA.onStart([]() {
     String type = (ArduinoOTA.getCommand() == U_FLASH) ? "sketch" : "filesystem";
@@ -82,7 +83,15 @@ void NetWifiOta::setupOta() {
   otaStarted = true;
 }
 
-void NetWifiOta::begin() {
+void NetWifiOta::begin(const NetworkConfig& config) {
+  config_ = config;
+  
+  // Update server port if specified
+  if (config_.webServerPort != 80) {
+    server_.~WebServer();
+    new (&server_) WebServer(config_.webServerPort);
+  }
+  
   setupWifi();
   setupOta();
   LogSerial.println("NetWifiOta initialization complete");
@@ -268,7 +277,7 @@ void NetWifiOta::ensureWebServer() {
   // Device info endpoint
   server_.on("/info", [this]() {
     String info = "{\n";
-    info += "  \"hostname\": \"" + String(DEVICE_HOSTNAME) + "\",\n";
+    info += "  \"hostname\": \"" + String(config_.deviceHostname) + "\",\n";
     info += "  \"ip\": \"" + WiFi.localIP().toString() + "\",\n";
     info += "  \"rssi\": " + String(WiFi.RSSI()) + ",\n";
     info += "  \"mac\": \"" + WiFi.macAddress() + "\",\n";

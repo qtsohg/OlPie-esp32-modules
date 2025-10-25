@@ -4,6 +4,7 @@
 #include <ArduinoOTA.h>
 #include <WebServer.h>
 #include <WiFi.h>
+#include "NetworkConfig.h"
 
 namespace espmods::network {
 
@@ -22,9 +23,10 @@ class NetWifiOta {
   NetWifiOta();
   
   /**
-   * @brief Initialize WiFi, OTA, and web server
+   * @brief Initialize WiFi, OTA, and web server with configuration
+   * @param config Network configuration containing WiFi credentials, hostname, etc.
    */
-  void begin();
+  void begin(const NetworkConfig& config);
   
   /**
    * @brief Main loop function - call this regularly from your main loop
@@ -50,6 +52,7 @@ class NetWifiOta {
   int32_t getWifiRssi() const;
 
  private:
+  NetworkConfig config_;
   WebServer server_{80};
   bool webServerStarted_ = false;
   
