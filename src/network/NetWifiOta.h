@@ -58,3 +58,4 @@ class NetWifiOta {
   void ensureWebServer();
   void handleWebServer();
 };
+}
