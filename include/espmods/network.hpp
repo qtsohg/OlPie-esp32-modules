@@ -28,3 +28,4 @@ class IMqttCommandHandler {
 }  // namespace espmods
 
 #include "network/NetOtaMqtt.h"
+#include "network/NetWifiOta.h"
