@@ -5,9 +5,6 @@
 #include <WebServer.h>
 #include <WiFi.h>
 
-#include "config.h"
-#include "secrets.h"
-
 namespace espmods::network {
 
 /**

@@ -3,6 +3,7 @@
 #include <espmods/core.hpp>
 
 using espmods::network::NetWifiOta;
+using espmods::network::NetworkConfig;
 using espmods::core::LogSerial;
 
 // Global network module instance
@@ -19,8 +20,15 @@ void setup() {
   LogSerial.println("- Over-The-Air (OTA) firmware updates");
   LogSerial.println("- Web server with live log streaming");
   
+  // Create network configuration
+  NetworkConfig config;
+  config.wifiSsid = "YourWiFiSSID";        // Replace with your WiFi SSID
+  config.wifiPassword = "YourWiFiPassword"; // Replace with your WiFi password
+  config.deviceHostname = "wifi-ota-example";
+  config.webServerPort = 80;
+  
   // Initialize the network module
-  netModule.begin();
+  netModule.begin(config);
   
   LogSerial.println("Setup complete!");
   if (netModule.isWifiConnected()) {
