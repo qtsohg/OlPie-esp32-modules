@@ -17,6 +17,7 @@ class AudioDySv5w {
   void begin(uint32_t baud = 9600);
   void play(uint16_t trackNumber);
   void sendCommand(uint8_t cmd, uint16_t param = 0);  // Generic command sender
+  void endPlay();
   
   // Status checking
   PlayState getPlayState();  // Query and return current state from module

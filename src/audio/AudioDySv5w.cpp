@@ -81,8 +81,34 @@ void AudioDySv5w::sendCommand(uint8_t cmd, uint16_t param) {
     LogSerial.print(" ");
   }
   LogSerial.println();
+
+  delay(10);
   
   //serial_.write(frame, 6);
+}
+
+// End play function, like a force stop
+//CMD：AA 10 00 BA
+//Description：It can end the current playing，it will end and return to play original
+//music, if the current operation is interlude.
+void AudioDySv5w::endPlay() {
+  // Generic command: AA CMD 02 High_Byte Low_Byte CRC
+  uint8_t frame[6];
+  frame[0] = 0xAA;  // Start code
+  frame[1] = 0x10;   // Command
+  frame[2] = 0x00;  // Data length: 2 bytes
+  frame[3] = 0xBA;  // High byte
+
+  LogSerial.print("[AUDIO] Sending CMD AA 10 00 BA");
+
+  LogSerial.print(": ");
+  for (size_t i = 0; i < 4; i++) {
+    serial_.write(frame[i]);
+    if (frame[i] < 0x10) LogSerial.print("0");
+    LogSerial.print(frame[i], HEX);
+    LogSerial.print(" ");
+  }
+  LogSerial.println();
 }
 
 bool AudioDySv5w::readResponse(uint8_t* buffer, size_t length, uint32_t timeoutMs) {
