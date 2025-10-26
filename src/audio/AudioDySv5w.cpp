@@ -58,6 +58,108 @@ void AudioDySv5w::play(uint16_t trackNumber) {
   lastPlayMillis_ = millis();
 }
 
+void AudioDySv5w::playByFilename(const char* filename) {
+  // Play file in root directory: /FILENAME*MP3
+  // Format: AA 08 length device path CRC
+  
+  // Construct path: /FILENAME*MP3
+  String path = "";
+  path += filename;
+  path += "*MP3";
+  
+  // Convert to uppercase as required by the spec
+  path.toUpperCase();
+  
+  LogSerial.print("[AUDIO] Playing file by name: ");
+  LogSerial.println(path);
+  
+  // Calculate frame size: start(1) + cmd(1) + length(1) + device(1) + path + crc(1)
+  uint8_t pathLen = path.length();
+  uint8_t totalDataLen = 1 + pathLen;  // device(1) + path length
+  uint8_t frameSize = 4 + pathLen;     // AA + 08 + length + device + path + CRC
+  
+  uint8_t* frame = new uint8_t[frameSize];
+  
+  frame[0] = 0xAA;           // Start code
+  frame[1] = 0x08;           // CMD: Specified device and path play
+  frame[2] = totalDataLen;   // Length of device + path
+  frame[3] = 0x00;           // Device: 0x00 for SD card/internal storage
+  
+  // Copy path bytes
+  for (uint8_t i = 0; i < pathLen; i++) {
+    frame[4 + i] = path[i];
+  }
+  
+  // Calculate and add checksum
+  frame[frameSize - 1] = computeChecksum(frame, frameSize - 1);
+  
+  // Send the frame
+  LogSerial.print("[AUDIO] Sending filename command: ");
+  for (size_t i = 0; i < frameSize; i++) {
+    serial_.write(frame[i]);
+    if (frame[i] < 0x10) LogSerial.print("0");
+    LogSerial.print(frame[i], HEX);
+    LogSerial.print(" ");
+  }
+  LogSerial.println();
+  
+  delete[] frame;
+  lastPlayMillis_ = millis();
+}
+
+void AudioDySv5w::playByPath(const char* folder, const char* filename) {
+  // Play file in specific folder: /FOLDER*/FILENAME*MP3
+  // Format: AA 08 length device path CRC
+  
+  // Construct path: /FOLDER*/FILENAME*MP3
+  String path = "/";
+  if (folder[0] != '\0') {
+    path += folder;
+    path += "*/";
+  }
+  path += filename;
+  path += "*MP3";
+  
+  // Convert to uppercase as required by the spec
+  path.toUpperCase();
+  
+  LogSerial.print("[AUDIO] Playing file by path: ");
+  LogSerial.println(path);
+  
+  // Calculate frame size: start(1) + cmd(1) + length(1) + device(1) + path + crc(1)
+  uint8_t pathLen = path.length();
+  uint8_t totalDataLen = 1 + pathLen;  // device(1) + path length
+  uint8_t frameSize = 4 + pathLen;     // AA + 08 + length + device + path + CRC
+  
+  uint8_t* frame = new uint8_t[frameSize];
+  
+  frame[0] = 0xAA;           // Start code
+  frame[1] = 0x08;           // CMD: Specified device and path play
+  frame[2] = totalDataLen;   // Length of device + path
+  frame[3] = 0x00;           // Device: 0x00 for SD card/internal storage
+  
+  // Copy path bytes
+  for (uint8_t i = 0; i < pathLen; i++) {
+    frame[4 + i] = path[i];
+  }
+  
+  // Calculate and add checksum
+  frame[frameSize - 1] = computeChecksum(frame, frameSize - 1);
+  
+  // Send the frame
+  LogSerial.print("[AUDIO] Sending path command: ");
+  for (size_t i = 0; i < frameSize; i++) {
+    serial_.write(frame[i]);
+    if (frame[i] < 0x10) LogSerial.print("0");
+    LogSerial.print(frame[i], HEX);
+    LogSerial.print(" ");
+  }
+  LogSerial.println();
+  
+  delete[] frame;
+  lastPlayMillis_ = millis();
+}
+
 void AudioDySv5w::sendCommand(uint8_t cmd, uint16_t param) {
   // Generic command: AA CMD 02 High_Byte Low_Byte CRC
   uint8_t frame[6];

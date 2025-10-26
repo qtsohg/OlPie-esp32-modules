@@ -16,6 +16,8 @@ class AudioDySv5w {
   explicit AudioDySv5w(uint8_t txPin, uint8_t rxPin);
   void begin(uint32_t baud = 9600);
   void play(uint16_t trackNumber);
+  void playByFilename(const char* filename);  // Play file by name in root directory
+  void playByPath(const char* folder, const char* filename);  // Play file in specific folder
   void sendCommand(uint8_t cmd, uint16_t param = 0);  // Generic command sender
   void endPlay();
   
