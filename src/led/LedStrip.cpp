@@ -161,6 +161,15 @@ void LedStrip::rainbow(uint32_t speed) {
   setEffect(config);
 }
 
+void LedStrip::colorWave(uint32_t color1, uint32_t color2, uint32_t speed) {
+  LedEffectConfig config;
+  config.effect = LedEffect::ColorWave;
+  config.primaryColor = color1;
+  config.secondaryColor = color2;
+  config.speed = speed;
+  setEffect(config);
+}
+
 void LedStrip::sparkle(uint32_t color, uint8_t density) {
   LedEffectConfig config;
   config.effect = LedEffect::Sparkle;

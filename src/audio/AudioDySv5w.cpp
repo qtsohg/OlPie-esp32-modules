@@ -63,7 +63,7 @@ void AudioDySv5w::playByFilename(const char* filename) {
   // Format: AA 08 length device path CRC
   
   // Construct path: /FILENAME*MP3
-  String path = "";
+  String path = "/";
   path += filename;
   path += "*MP3";
   
@@ -83,7 +83,7 @@ void AudioDySv5w::playByFilename(const char* filename) {
   frame[0] = 0xAA;           // Start code
   frame[1] = 0x08;           // CMD: Specified device and path play
   frame[2] = totalDataLen;   // Length of device + path
-  frame[3] = 0x00;           // Device: 0x00 for SD card/internal storage
+  frame[3] = 0x01;           // Device: 0x00 for SD card/internal storage
   
   // Copy path bytes
   for (uint8_t i = 0; i < pathLen; i++) {

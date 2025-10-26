@@ -101,6 +101,7 @@ class LedStrip {
   void strobe(uint32_t color, uint32_t speed = 100);
   void gradientPulse(uint32_t color1, uint32_t color2, uint32_t speed = 3000);
   void randomFlicker(uint32_t baseColor, uint8_t intensity = 50);
+  void colorWave(uint32_t color1, uint32_t color2, uint32_t speed = 3000);
   void lightning(uint32_t color = 0xFFFFFF);
   void fire(uint8_t intensity = 128);
   void rainbow(uint32_t speed = 5000);
