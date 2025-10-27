@@ -1,5 +1,6 @@
 #include "NetWifiOta.h"
 #include "NetworkConfig.h"
+#include "WidgetDashboard.h"
 
 #include <espmods/core.hpp>
 
@@ -104,9 +105,11 @@ void NetWifiOta::ensureWebServer() {
 
   LogSerial.println("Starting web server...");
 
-  // Main page with log viewer
-  server_.on("/", [this]() {
-    static const char kIndexHtml[] PROGMEM = R"rawliteral(
+  if (config_.dashboard) {
+    config_.dashboard->attach(server_, config_);
+  } else {
+    server_.on("/", [this]() {
+      static const char kIndexHtml[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
 <head>
@@ -114,25 +117,25 @@ void NetWifiOta::ensureWebServer() {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Device Logs</title>
   <style>
-    body { 
-      font-family: 'Courier New', monospace; 
-      background: #1a1a1a; 
-      color: #e0e0e0; 
-      margin: 0; 
-      padding: 0; 
+    body {
+      font-family: 'Courier New', monospace;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
       line-height: 1.4;
     }
-    header { 
-      padding: 1rem; 
-      background: #2d2d2d; 
-      position: sticky; 
-      top: 0; 
+    header {
+      padding: 1rem;
+      background: #2d2d2d;
+      position: sticky;
+      top: 0;
       border-bottom: 2px solid #444;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
-    h1 { 
-      margin: 0; 
-      font-size: 1.4rem; 
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
       color: #4CAF50;
     }
     .status {
@@ -160,11 +163,11 @@ void NetWifiOta::ensureWebServer() {
       background: #666;
       cursor: not-allowed;
     }
-    #logs { 
-      padding: 1rem; 
-      height: calc(100vh - 140px); 
-      overflow-y: auto; 
-      white-space: pre-wrap; 
+    #logs {
+      padding: 1rem;
+      height: calc(100vh - 140px);
+      overflow-y: auto;
+      white-space: pre-wrap;
       font-size: 0.9rem;
       background: #0d1117;
       border: 1px solid #333;
@@ -190,37 +193,37 @@ void NetWifiOta::ensureWebServer() {
     </div>
   </header>
   <pre id="logs">Loading logs...</pre>
-  
+
   <script>
     const logsEl = document.getElementById('logs');
     const statusEl = document.getElementById('status');
     const autoScrollBtn = document.getElementById('autoScrollBtn');
     let autoScroll = true;
     let lastUpdateTime = new Date();
-    
+
     function updateStatus() {
       const now = new Date();
       const timeDiff = Math.round((now - lastUpdateTime) / 1000);
       statusEl.textContent = `Last update: ${timeDiff}s ago | Auto-refresh: ON`;
     }
-    
+
     async function fetchLogs() {
       try {
         const response = await fetch('/logs', { cache: 'no-cache' });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-        
-        const shouldPin = autoScroll && 
+
+        const shouldPin = autoScroll &&
           Math.abs(logsEl.scrollTop + logsEl.clientHeight - logsEl.scrollHeight) < 8;
-        
+
         const newContent = await response.text();
         logsEl.textContent = newContent;
-        
+
         if (shouldPin) {
           logsEl.scrollTop = logsEl.scrollHeight;
         }
-        
+
         lastUpdateTime = new Date();
         updateStatus();
       } catch (err) {
@@ -228,11 +231,11 @@ void NetWifiOta::ensureWebServer() {
         statusEl.textContent = `Error: ${err.message}`;
       }
     }
-    
+
     function clearLogs() {
       logsEl.textContent = 'Logs cleared (this only clears the display, not the actual logs)';
     }
-    
+
     function downloadLogs() {
       const logContent = logsEl.textContent;
       const blob = new Blob([logContent], { type: 'text/plain' });
@@ -245,27 +248,23 @@ void NetWifiOta::ensureWebServer() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
-    
+
     function toggleAutoScroll() {
       autoScroll = !autoScroll;
       autoScrollBtn.textContent = `Auto-scroll: ${autoScroll ? 'ON' : 'OFF'}`;
       autoScrollBtn.className = autoScroll ? 'auto-scroll' : '';
     }
-    
-    // Update status every second
+
     setInterval(updateStatus, 1000);
-    
-    // Fetch logs every 1 second
     setInterval(fetchLogs, 1000);
-    
-    // Initial fetch
     fetchLogs();
   </script>
 </body>
 </html>
 )rawliteral";
-    server_.send_P(200, "text/html", kIndexHtml);
-  });
+      server_.send_P(200, "text/html", kIndexHtml);
+    });
+  }
 
   // API endpoint to get logs
   server_.on("/logs", [this]() {
@@ -297,7 +296,8 @@ void NetWifiOta::ensureWebServer() {
 
   server_.begin();
   webServerStarted_ = true;
-  LogSerial.println("Web server started on port 80");
+  LogSerial.print("Web server started on port ");
+  LogSerial.println(config_.webServerPort);
   LogSerial.print("Access logs at: http://");
   LogSerial.println(WiFi.localIP());
 }
