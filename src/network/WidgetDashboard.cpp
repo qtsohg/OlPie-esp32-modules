@@ -159,7 +159,7 @@ String WidgetDashboard::buildIndexHtml(const NetworkConfig& config) const {
     html += button.endpoint;
     html += F("\" data-id=\"");
     html += button.id;
-    html += F("\">\");
+    html += F("\">");
     html += escapeHtml(button.label);
     html += F("</button></div>");
   }
@@ -221,9 +221,9 @@ String WidgetDashboard::buildIndexHtml(const NetworkConfig& config) const {
   html += F("autoScrollBtn.addEventListener('click',()=>{autoScroll=!autoScroll;autoScrollBtn.textContent=`Auto-scroll: ${autoScroll?'ON':'OFF'}`;autoScrollBtn.classList.toggle('auto-scroll',autoScroll);});");
   html += F("setInterval(updateStatus,1000);setInterval(fetchLogs,1000);fetchLogs();");
 
-  html += F("document.querySelectorAll('[data-widget=\\"button\\"]').forEach(btn=>{btn.addEventListener('click',async()=>{btn.disabled=true;try{const response=await fetch(btn.dataset.endpoint,{method:'POST'});if(!response.ok){throw new Error('Request failed');}showToast(`${btn.textContent.trim()} triggered`);}catch(err){showToast(err.message);}finally{btn.disabled=false;}});});");
-  html += F("document.querySelectorAll('[data-widget=\\"slider\\"]').forEach(slider=>{const valueEl=document.getElementById(`${slider.dataset.id}-value`);slider.addEventListener('input',()=>{valueEl.textContent=parseFloat(slider.value).toFixed(2);});slider.addEventListener('change',async()=>{try{const response=await fetch(slider.dataset.endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`value=${encodeURIComponent(slider.value)}`});if(!response.ok){throw new Error('Request failed');}showToast(`${slider.dataset.id} → ${parseFloat(slider.value).toFixed(2)}`);}catch(err){showToast(err.message);}});});");
-  html += F("document.querySelectorAll('[data-widget=\\"input\\"]').forEach(form=>{form.addEventListener('submit',async(event)=>{event.preventDefault();const formData=new FormData(form);const value=formData.get('value');try{const response=await fetch(form.dataset.endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`value=${encodeURIComponent(value)}`});if(!response.ok){throw new Error('Request failed');}showToast(`${form.dataset.id} updated`);}catch(err){showToast(err.message);}});});");
+  html += F("document.querySelectorAll('[data-widget=\"button\"]').forEach(btn=>{btn.addEventListener('click',async()=>{btn.disabled=true;try{const response=await fetch(btn.dataset.endpoint,{method:'POST'});if(!response.ok){throw new Error('Request failed');}showToast(`${btn.textContent.trim()} triggered`);}catch(err){showToast(err.message);}finally{btn.disabled=false;}});});");
+  html += F("document.querySelectorAll('[data-widget=\"slider\"]').forEach(slider=>{const valueEl=document.getElementById(`${slider.dataset.id}-value`);slider.addEventListener('input',()=>{valueEl.textContent=parseFloat(slider.value).toFixed(2);});slider.addEventListener('change',async()=>{try{const response=await fetch(slider.dataset.endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`value=${encodeURIComponent(slider.value)}`});if(!response.ok){throw new Error('Request failed');}showToast(`${slider.dataset.id} → ${parseFloat(slider.value).toFixed(2)}`);}catch(err){showToast(err.message);}});});");
+  html += F("document.querySelectorAll('[data-widget=\"input\"]').forEach(form=>{form.addEventListener('submit',async(event)=>{event.preventDefault();const formData=new FormData(form);const value=formData.get('value');try{const response=await fetch(form.dataset.endpoint,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`value=${encodeURIComponent(value)}`});if(!response.ok){throw new Error('Request failed');}showToast(`${form.dataset.id} updated`);}catch(err){showToast(err.message);}});});");
 
   html += F("</script></body></html>");
   return html;
