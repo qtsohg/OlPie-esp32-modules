@@ -1,6 +1,8 @@
 #include "LogSerial.h"
 
 #include <cstring>
+#include <cstdarg>
+#include "esp_log.h"
 
 namespace espmods::core {
 
@@ -97,6 +99,34 @@ size_t MirrorLog::println(void) {
   return Print::println(msg);
 }
 
+size_t MirrorLog::printf(const char* format, ...) {
+  char buffer[512];  // Adjust size as needed
+  va_list args;
+  va_start(args, format);
+  int len = vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+  
+  if (len > 0) {
+    String msg = getTimestamp() + String(buffer);
+    return Print::print(msg);
+  }
+  return 0;
+}
+
+size_t MirrorLog::printfln(const char* format, ...) {
+  char buffer[512];  // Adjust size as needed
+  va_list args;
+  va_start(args, format);
+  int len = vsnprintf(buffer, sizeof(buffer), format, args);
+  va_end(args);
+  
+  if (len > 0) {
+    String msg = getTimestamp() + String(buffer);
+    return Print::println(msg);
+  }
+  return 0;
+}
+
 int MirrorLog::available() const {
   return static_cast<int>(count_);
 }
@@ -112,4 +142,107 @@ void MirrorLog::copyTo(String &out) const {
 
 MirrorLog LogSerial(Serial);
 
+// Serial capture implementation using ESP-IDF logging redirection
+static bool g_capture_enabled = false;
+
+// Override the ESP-IDF log output function
+static int log_vprintf(const char* format, va_list args) {
+  if (g_capture_enabled) {
+    char buffer[512];
+    int len = vsnprintf(buffer, sizeof(buffer), format, args);
+    if (len > 0) {
+      // Add system prefix and timestamp through LogSerial
+      String msg = String("[SYS] ") + String(buffer);
+      LogSerial.write(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.length());
+    }
+  }
+  // Also send to original output
+  return vprintf(format, args);
 }
+
+void enableSerialCapture() {
+  if (!g_capture_enabled) {
+    g_capture_enabled = true;
+    // Set our custom log function
+    esp_log_set_vprintf(log_vprintf);
+    LogSerial.printfln("Serial capture enabled - system logs will appear in web console");
+  }
+}
+
+void disableSerialCapture() {
+  if (g_capture_enabled) {
+    g_capture_enabled = false;
+    // Restore default log function
+    esp_log_set_vprintf(vprintf);
+    LogSerial.printfln("Serial capture disabled");
+  }
+}
+
+// Advanced system capture
+static bool g_full_capture_enabled = false;
+static FILE* g_original_stdout = nullptr;
+static FILE* g_original_stderr = nullptr;
+
+// Custom write function for stdout/stderr redirection
+static int custom_stdout_write(void* cookie, const char* data, int size) {
+  // Write to LogSerial buffer
+  if (g_full_capture_enabled && data && size > 0) {
+    String msg = "[STDOUT] " + String(data).substring(0, size);
+    LogSerial.write(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.length());
+  }
+  // Also write to original stdout
+  return fwrite(data, 1, size, g_original_stdout);
+}
+
+static int custom_stderr_write(void* cookie, const char* data, int size) {
+  // Write to LogSerial buffer
+  if (g_full_capture_enabled && data && size > 0) {
+    String msg = "[STDERR] " + String(data).substring(0, size);
+    LogSerial.write(reinterpret_cast<const uint8_t*>(msg.c_str()), msg.length());
+  }
+  // Also write to original stderr
+  return fwrite(data, 1, size, g_original_stderr);
+}
+
+void enableFullSystemCapture() {
+  if (!g_full_capture_enabled) {
+    g_full_capture_enabled = true;
+    
+    // Enable ESP-IDF log capture
+    enableSerialCapture();
+    
+    // Store original stdout/stderr
+    g_original_stdout = stdout;
+    g_original_stderr = stderr;
+    
+    LogSerial.printfln("Full system capture enabled - all output will appear in web console");
+  }
+}
+
+void disableFullSystemCapture() {
+  if (g_full_capture_enabled) {
+    g_full_capture_enabled = false;
+    
+    // Disable ESP-IDF log capture
+    disableSerialCapture();
+    
+    // Restore original stdout/stderr if they were redirected
+    if (g_original_stdout) {
+      stdout = g_original_stdout;
+      g_original_stdout = nullptr;
+    }
+    if (g_original_stderr) {
+      stderr = g_original_stderr;
+      g_original_stderr = nullptr;
+    }
+    
+    LogSerial.printfln("Full system capture disabled");
+  }
+}
+
+}  // namespace espmods::core
+
+// Support for serial redirection macro
+#ifdef ENABLE_SERIAL_REDIRECT
+HardwareSerial* _original_serial = &Serial;
+#endif

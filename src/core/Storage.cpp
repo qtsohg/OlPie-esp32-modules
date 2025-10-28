@@ -2,7 +2,7 @@
 namespace espmods::core {
 
 
-void Storage::begin() { prefs_.begin("toothbrush", false); }
+void Storage::begin() { prefs_.begin("halloweeninator", false); }
 
 void Storage::saveStreak(uint8_t profileIndex, uint32_t streak) {
   prefs_.putULong(String("streak_" + String(profileIndex)).c_str(), streak);
@@ -26,4 +26,22 @@ float Storage::loadThreshold(uint8_t profileIndex, float defaultValue) {
   return prefs_.getFloat(String("threshold_" + String(profileIndex)).c_str(),
                          defaultValue);
 }
+
+// Generic storage methods
+void Storage::saveUInt32(const char* key, uint32_t value) {
+  prefs_.putULong(key, value);
+}
+
+uint32_t Storage::loadUInt32(const char* key, uint32_t defaultValue) {
+  return prefs_.getULong(key, defaultValue);
+}
+
+void Storage::saveFloat(const char* key, float value) {
+  prefs_.putFloat(key, value);
+}
+
+float Storage::loadFloat(const char* key, float defaultValue) {
+  return prefs_.getFloat(key, defaultValue);
+}
+
 }

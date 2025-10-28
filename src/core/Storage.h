@@ -16,6 +16,12 @@ class Storage {
  void saveThreshold(uint8_t profileIndex, float threshold);
   float loadThreshold(uint8_t profileIndex, float defaultValue);
 
+  // Generic storage methods for configuration values
+  void saveUInt32(const char* key, uint32_t value);
+  uint32_t loadUInt32(const char* key, uint32_t defaultValue);
+  void saveFloat(const char* key, float value);
+  float loadFloat(const char* key, float defaultValue);
+
  private:
   Preferences prefs_;
 };

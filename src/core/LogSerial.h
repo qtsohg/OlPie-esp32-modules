@@ -34,6 +34,10 @@ class MirrorLog : public Print {
   size_t println(double num, int digits = 2);
   size_t println(void);
 
+  // Printf-style functions with timestamps
+  size_t printf(const char* format, ...) __attribute__((format(printf, 2, 3)));
+  size_t printfln(const char* format, ...) __attribute__((format(printf, 2, 3)));
+
   int available() const;
   void copyTo(String &out) const;
 
@@ -47,4 +51,13 @@ class MirrorLog : public Print {
 };
 
 extern MirrorLog LogSerial;
+
+// Simple Serial output capturing
+void enableSerialCapture();
+void disableSerialCapture();
+
+// Advanced: Capture Arduino framework and library output
+void enableFullSystemCapture();
+void disableFullSystemCapture();
+
 }
